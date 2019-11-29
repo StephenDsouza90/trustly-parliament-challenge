@@ -76,8 +76,6 @@ def create_app():
                         members_foreignkey_list.append(keys[x])
         return members_foreignkey_list
 
-
-
     def speeches_dict():
         # Get speeches data from get_speeches func
         speeches_data = get_speeches()
@@ -94,8 +92,6 @@ def create_app():
                 intressent_id = [keys[x] for x in keys if x == "intressent_id"] # to be removed later
         return anforande_id, dok_datum, talare, parti, protokoll_url_www, dok_titel, intressent_id
     # printing only 1 .. need to find a way to print all ten
-
-
 
     def members_dict():
         # Get members data from get_members func
@@ -119,9 +115,6 @@ def create_app():
         return valkrets, bild_url_192, uppgift, intressent_id
     # Problem with matching foreign keys because someone else details are coming
     # printing only 1 .. need to find a way to print all ten 
-
-
-
 
     @app.route('/ten-latest-speeches', methods=['GET'])
     def get_ten_latest_speeches():
@@ -159,7 +152,6 @@ def create_app():
         print(ten_latest_speeches)
         return json.dumps(ten_latest_speeches)
     return app
-
 
 
 def main():
