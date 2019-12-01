@@ -48,7 +48,7 @@ def recursive_items(dictionary):
             yield (key, value)
 
 
-def get_speeches_dict():
+def create_speeches_dict():
     # get speeches data from get_speeches func
     speeches_data = get_speeches()
 
@@ -77,7 +77,7 @@ def get_speeches_dict():
     return relevant_speeches
 
 
-def get_members_dict():
+def create_members_dict():
     # get members data from get_members func
     members_data = get_members()
 
@@ -94,23 +94,23 @@ def get_members_dict():
                 "valkrets": valkrets,
                 "bild_url_192": bild_url_192,
                 "uppgift": uppgift,
-                "intressent_id_check": intressent_id
+                "intressent_id": intressent_id
                 }
             NOT_relevant_members.append(membersDict)
     return NOT_relevant_members
 
 
-def get_relevant_members_dict():
-    speeches_data = get_speeches_dict()
-    members_data = get_members_dict()
+def get_relevant_members():
+    speeches_data = create_speeches_dict()
+    members_data = create_members_dict()
 
     # access the value of FK in speeches_data and match that with the value of FK in the members_data
     relevant_members_dict = []
     for x in speeches_data:
-        value_intressent_id = x["intressent_id"]
+        intressent_id = x["intressent_id"]
         for y in members_data:
-            value_intressent_id_check = y["intressent_id_check"]
-            if value_intressent_id == value_intressent_id_check:
+            intressent_id_check = y["intressent_id"]
+            if intressent_id == intressent_id_check:
                 rel = y
                 relevant_members_dict.append(rel)
     return relevant_members_dict
@@ -124,41 +124,50 @@ def create_app():
         """
         curl -X GET "localhost:8080/ten-latest-speeches"
         """
-        speeches = get_speeches_dict()
-        members = get_relevant_members_dict()
+        # ten latest speeches
+        speeches = create_speeches_dict()
+
+        # relevant members data based on FK
+        # only some members data are there as some do not exist
+        members = get_relevant_members()
 
         # merge both data together
         ten_latest_speeches = []
+    
         for s in speeches:
+            anforande_id = s["anforande_id"]
+            dok_datum = s["dok_datum"]
+            talare = s["talare"]
+            parti = s["parti"]
+            dok_titel = s["dok_titel"]
+            protokoll_url_www = s["protokoll_url_www"]
+            intressent_id = s["intressent_id"]
+
             for m in members:
-                anforande_id = s["anforande_id"]
-                dok_datum = s["dok_datum"]
-                talare = s["talare"]
-                parti = s["parti"]
-                protokoll_url_www = s["protokoll_url_www"]
-                dok_titel = s["dok_titel"]
-                intressent_id = s["intressent_id"]
                 valkrets = m["valkrets"]
                 bild_url_192 = m["bild_url_192"]
                 uppgift = m["uppgift"]
                 intressent_id_check = m["intressent_id_check"]
 
-                combinedDict = {
-                    "anforande_id": anforande_id,
-                    "dok_datum": dok_datum,
-                    "talare": talare,
-                    "parti": parti, 
-                    "protokoll_url_www": protokoll_url_www, 
-                    "dok_titel": dok_titel,
-                    "intressent_id": intressent_id,
-                    "valkrets": valkrets,
-                    "bild_url_192": bild_url_192,
-                    "uppgift": uppgift,
-                    "intressent_id_check": intressent_id_check
-                    }
-                ten_latest_speeches.append(combinedDict)
-        # print(ten_latest_speeches)
-        # return json.dumps(ten_latest_speeches)
+                if intressent_id == intressent_id_check:
+                    combinedDict = {
+                        "anforande_id": anforande_id,
+                        "dok_datum": dok_datum,
+                        "talare": talare,
+                        "parti": parti, 
+                        "protokoll_url_www": protokoll_url_www, 
+                        "dok_titel": dok_titel,
+                        "intressent_id": intressent_id,
+                        "valkrets": valkrets,
+                        "bild_url_192": bild_url_192,
+                        "uppgift": uppgift,
+                        "intressent_id_check": intressent_id_check
+                        }
+
+                    ten_latest_speeches.append(combinedDict)
+
+        print(ten_latest_speeches)
+        return json.dumps(ten_latest_speeches)
     return app
     
 
