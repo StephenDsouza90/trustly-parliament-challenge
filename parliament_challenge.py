@@ -94,7 +94,7 @@ def create_members_dict():
                 "valkrets": valkrets,
                 "bild_url_192": bild_url_192,
                 "uppgift": uppgift,
-                "intressent_id": intressent_id
+                "intressent_id_check": intressent_id
                 }
             NOT_relevant_members.append(membersDict)
     return NOT_relevant_members
@@ -109,7 +109,7 @@ def get_relevant_members():
     for x in speeches_data:
         intressent_id = x["intressent_id"]
         for y in members_data:
-            intressent_id_check = y["intressent_id"]
+            intressent_id_check = y["intressent_id_check"]
             if intressent_id == intressent_id_check:
                 rel = y
                 relevant_members_dict.append(rel)
@@ -133,38 +133,14 @@ def create_app():
 
         # merge both data together
         ten_latest_speeches = []
+
+        if speeches:
+            for s in speeches:
+                ten_latest_speeches.append(s)
     
-        for s in speeches:
-            anforande_id = s["anforande_id"]
-            dok_datum = s["dok_datum"]
-            talare = s["talare"]
-            parti = s["parti"]
-            dok_titel = s["dok_titel"]
-            protokoll_url_www = s["protokoll_url_www"]
-            intressent_id = s["intressent_id"]
-
+        if members:
             for m in members:
-                valkrets = m["valkrets"]
-                bild_url_192 = m["bild_url_192"]
-                uppgift = m["uppgift"]
-                intressent_id_check = m["intressent_id_check"]
-
-                if intressent_id == intressent_id_check:
-                    combinedDict = {
-                        "anforande_id": anforande_id,
-                        "dok_datum": dok_datum,
-                        "talare": talare,
-                        "parti": parti, 
-                        "protokoll_url_www": protokoll_url_www, 
-                        "dok_titel": dok_titel,
-                        "intressent_id": intressent_id,
-                        "valkrets": valkrets,
-                        "bild_url_192": bild_url_192,
-                        "uppgift": uppgift,
-                        "intressent_id_check": intressent_id_check
-                        }
-
-                    ten_latest_speeches.append(combinedDict)
+                ten_latest_speeches.append(m)
 
         print(ten_latest_speeches)
         return json.dumps(ten_latest_speeches)
