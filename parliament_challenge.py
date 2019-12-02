@@ -4,11 +4,6 @@ import flask
 from flask import Flask, request, json
 
 
-not_found = {"message": "Not Found"}
-success = {"message": "Success"}
-failed = {"message": "Failed"}
-
-
 def get_speeches():
     # use speeches api to extract data
     domain = 'http://data.riksdagen.se'
@@ -19,9 +14,9 @@ def get_speeches():
 
     if response.status_code == 200:
         data = response.json()
-        return data
-    elif response.status_code == 404:
-        return json.dumps(not_found)
+        for k, v in data.items():
+            anforande = v["anforande"]
+            return anforande
 
 
 def get_members():
@@ -33,47 +28,37 @@ def get_members():
 
     if response.status_code == 200:
         data = response.json()
-        return data
-    elif response.status_code == 404:
-        return json.dumps(not_found)
-
-
-def recursive_items(dictionary):
-    # loop through nested dict
-    # skips 1st nested loop
-    for key, value in dictionary.items():
-        if type(value) is dict:
-            yield from recursive_items(value)
-        else:
-            yield (key, value)
+        for k, v in data.items():
+            person = v["person"]
+            return person
 
 
 def create_speeches_dict():
     # get speeches data from get_speeches func
     speeches_data = get_speeches()
-
+    
     # loop through speeches_data to return relevant keys and values of ten latest speeches
     relevant_speeches = []
-    for keys, values in recursive_items(speeches_data):
-        for keys in values:
-            anforande_id = [keys[x] for x in keys if x == "anforande_id"]
-            dok_datum = [keys[x] for x in keys if x == "dok_datum"]
-            talare = [keys[x] for x in keys if x == "talare"]
-            parti = [keys[x] for x in keys if x == "parti"]
-            protokoll_url_www = [keys[x] for x in keys if x == "protokoll_url_www"]
-            dok_titel = [keys[x] for x in keys if x == "dok_titel"]
-            intressent_id = [keys[x] for x in keys if x == "intressent_id"] # to be removed later
 
-            speechesDict = {
-                "anforande_id": anforande_id,
-                "dok_datum": dok_datum,
-                "talare": talare,
-                "parti": parti, 
-                "protokoll_url_www": protokoll_url_www, 
-                "dok_titel": dok_titel,
-                "intressent_id": intressent_id
-                }
-            relevant_speeches.append(speechesDict)
+    for speeches in speeches_data:
+        anforande_id = [v for k, v in speeches.items() if k == "anforande_id"]
+        dok_datum = [v for k, v in speeches.items() if k == "dok_datum"]
+        talare = [v for k, v in speeches.items() if k =="talare"]
+        parti = [v for k, v in speeches.items() if k == "parti"]
+        protokoll_url_www = [v for k, v in speeches.items() if k == "protokoll_url_www"]
+        dok_titel = [v for k, v in speeches.items() if k == "dok_titel"]
+        intressent_id = [v for k, v in speeches.items() if k == "intressent_id"] # to be removed later            
+
+        speechesDict = {
+            "anforande_id": anforande_id,
+            "dok_datum": dok_datum,
+            "talare": talare,
+            "parti": parti, 
+            "protokoll_url_www": protokoll_url_www, 
+            "dok_titel": dok_titel,
+            "intressent_id": intressent_id
+            }
+        relevant_speeches.append(speechesDict)
     return relevant_speeches
 
 
@@ -81,23 +66,22 @@ def create_members_dict():
     # get members data from get_members func
     members_data = get_members()
 
-    # loop through members_data to return relevant values of ONLY the ten latest speeches
-    NOT_relevant_members = []
-    for keys, values in recursive_items(members_data):
-        for keys in values:
-            valkrets = [keys[x] for x in keys if x == "valkrets"]
-            bild_url_192 = [keys[x] for x in keys if x == "bild_url_192"]
-            uppgift = [keys[x] for x in keys if x == "uppgift"] # email not come
-            intressent_id = [keys[x] for x in keys if x == "intressent_id"] # to be removed later
+    # loop through members_data to return relevant values of ONLY those keys that are needed
+    all_members = []
+    for members in members_data:
+        valkrets = [v for k, v in members.items() if k == "valkrets"]
+        bild_url_192 = [v for k, v in members.items() if k == "bild_url_192"]
+        uppgift = [v for k, v in members.items() if k == "uppgift"] # email not come
+        intressent_id = [v for k, v in members.items() if k == "intressent_id"] # to be removed later
 
-            membersDict = {
-                "valkrets": valkrets,
-                "bild_url_192": bild_url_192,
-                "uppgift": uppgift,
-                "intressent_id_check": intressent_id
-                }
-            NOT_relevant_members.append(membersDict)
-    return NOT_relevant_members
+        membersDict = {
+            "valkrets": valkrets,
+            "bild_url_192": bild_url_192,
+            "uppgift": uppgift,
+            "intressent_id": intressent_id
+            }
+        all_members.append(membersDict)
+    return all_members
 
 
 def get_relevant_members():
@@ -106,19 +90,20 @@ def get_relevant_members():
 
     # access the value of FK in speeches_data and match that with the value of FK in the members_data
     relevant_members_dict = []
-    for x in speeches_data:
-        intressent_id = x["intressent_id"]
-        for y in members_data:
-            intressent_id_check = y["intressent_id_check"]
-            if intressent_id == intressent_id_check:
-                rel = y
-                relevant_members_dict.append(rel)
+    for s in speeches_data:
+        intressent_id = s["intressent_id"]
+        for m in members_data:
+            intressent_id_FK = m["intressent_id"]
+            if intressent_id == intressent_id_FK:
+                relevant_members = m
+                relevant_members_dict.append(relevant_members)
     return relevant_members_dict
 
 
 def create_app():
     app = Flask("Parliament Challenge")
-  
+
+
     @app.route('/ten-latest-speeches', methods=['GET'])
     def get_ten_latest_speeches():
         """
@@ -143,9 +128,9 @@ def create_app():
                 ten_latest_speeches.append(m)
 
         print(ten_latest_speeches)
-        return json.dumps(ten_latest_speeches)
+        return json.dumps(ten_latest_speeches)    
     return app
-    
+
 
 def main():
     app = create_app()
