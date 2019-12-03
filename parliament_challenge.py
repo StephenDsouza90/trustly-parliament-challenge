@@ -61,7 +61,7 @@ def create_speeches_dict():
             "anforande_id": anforande_id[0],
             "dok_datum": dok_datum[0],
             "parti": parti[0], 
-            "dok_titel": avsnittsrubrik[0],
+            "avsnittsrubrik": avsnittsrubrik[0],
             "protokoll_url_www": protokoll_url_www[0], 
             "intressent_id": intressent_id[0]
             }
