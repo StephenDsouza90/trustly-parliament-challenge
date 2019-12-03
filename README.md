@@ -1,141 +1,125 @@
 # Trustly Parliament Challenge
 
-## Introduction
+## Problem
 
-The parliament challenge by Trustly is approached as follows:
+This is a challenge by Trustly known as the "Parliament Challenge".
 
-1. Get speeches resource from its respective apis. Since speeches data is in a nested dict, the for loop has been used to iterate over the required dict which is "anforande". The speeches api allows for extracting the ten latest speeches.
+The Swedish parliament has an open API platform for developers to use its resources to create applications. Among its resources are the speeches in the parliament and the data of its members.
 
-> Speech api: http://data.riksdagen.se/anforandelista/?anftyp=Nej&sz=10&utformat=json
+The challenge by Trustly is to create an appliction that serves requests for parliament speeches. The expected response should be created by merging the data from the speeches api and members api and should be in a JSON format.
 
-2. Get members resource from its respective apis. Since members data is in a nested dict, the for loop has been used to iterate over the required dict which is "person". All members data has been extracted.
+The expected response should at least contain:
 
-> Members api: http://data.riksdagen.se/personlista/?iid=&fnamn=&enamn=&f_ar=&kn=&parti=&valkrets=&rdlstatus=&org=&utformat=json&sort=sorteringsnamn&sortorder=asc&termlista=
+- A unique ID, representing the speech itself (anforande_id)
+- Date of speech (dok_datum)
+- The name of the speaker, and only the name (tilltalsnamn)
+- Political affiliation (parti)
+- The official e-mail address (uppgift)
+- Constituency (valkrets)
+- A decent sized image that could be used in a web site listing (bild_url_192)
+- The debate subject (avsnittsrubrik)
+- A link to the speech (HATEOAS style) (protokoll_url_www)
 
-3. Create a speeches dict of the ten latest speeches and extract the relevant information (Given below). The intressent_id is an extra data extracted because it is a common object between the speeches data and members data. 
+The link to the challenge can be found on https://github.com/trustly/parliament-challenge
+
+## Approach
+
+The challenge is approached as follows:
+
+1. The function `get_speeches` is responsible for getting the speeches resources from its respective apis. The speeches api has a filter to extract the ten latest speeches. Since speeches data is in a nested dict, the for loop has been used to iterate over to the required dict which is "anforande". Speech api: http://data.riksdagen.se/anforandelista/?anftyp=Nej&sz=10&utformat=json
+
+2. The function `get_members` is responsible for getting the members resources from its respective apis. Here all members data has been extracted. Since members data is in a nested dict, the for loop has been used to iterate over to the required dict which is "person". Members api: http://data.riksdagen.se/personlista/?iid=&fnamn=&enamn=&f_ar=&kn=&parti=&valkrets=&rdlstatus=&org=&utformat=json&sort=sorteringsnamn&sortorder=asc&termlista=
+
+3. Now since the ten latest speeches are in the `get_speeches` function, a list of dict has been created in the `create_speeches_dict` function contianing only the relevant keys and values of speeches. An additional key and value `intressent_id` has been used which can be used as a foreign key and be useful for merge the speeches data to members data. The relevant keys are:
 - anforande_id
 - dok_datum
 - talare
 - parti
+- avsnittsrubrik
 - protokoll_url_www
-- dok_titel
 - intressent_id 
 
-speeches
-```
-[
-  {
-    'anforande_id': ['49102c9a-e312-ea11-912c-901b0e9b71a8'], 
-    'dok_datum': ['2019-11-29'], 
-    'talare': ['Arbetsmarknadsministern Eva Nordmark (S)'], 
-    'parti': ['S'], 
-    'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf170'], 
-    'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 
-    'intressent_id': ['0661583406713']
-    }, 
-
-  {'anforande_id': ['48102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Ali Esbati (V)'], 'parti': ['V'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf169'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['014386615025']}, 
-  {'anforande_id': ['47102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Arbetsmarknadsministern Eva Nordmark (S)'], 'parti': ['S'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf168'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0661583406713']}, 
-  {'anforande_id': ['46102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Ali Esbati (V)'], 'parti': ['V'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf167'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['014386615025']}, 
-  {'anforande_id': ['45102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Arbetsmarknadsministern Eva Nordmark (S)'], 'parti': ['S'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf166'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0661583406713']}, 
-  {'anforande_id': ['44102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Ali Esbati (V)'], 'parti': ['V'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf165'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['014386615025']}, 
-  {'anforande_id': ['43102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Arbetsmarknadsministern Eva Nordmark (S)'], 'parti': ['S'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf164'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0661583406713']}, 
-  {'anforande_id': ['42102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Infrastrukturministern Tomas Eneroth (S)'], 'parti': ['S'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf163'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0284192765516']}, 
-  {'anforande_id': ['41102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Jens Holm (V)'], 'parti': ['V'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf162'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0216534495014']}, 
-  {'anforande_id': ['40102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Infrastrukturministern Tomas Eneroth (S)'], 'parti': ['S'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf161'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0284192765516']}
-  ]
-```
-
-4. Create a members dict of all members and extract the relevant information (Given below). Again the intressent_id is an extra data extracted because it is a common object between the speeches data and members data. 
+4. Now since we have all the members data in the `get_members` function, a list of dict has been created in the `create_members_dict` function containing only the relevant keys and values of memebers. An additional key and value `intressent_id` has been used which can be used as a foreign key and be useful for merge the speeches data to members data. The relevant keys are: 
+- tilltalsnamn
 - valkrets 
 - bild_url_192
-- uppgift
 - intressent_id
 
-5. Get the relevant members information based on the ten latest speeches by matching a common object which is intressent_id. By this approach, only the relevant members information can be extracted and stored in a list.
+5. Some of the speakers in the speeches data do not have data in the members resource api, therefore, the relevant members data has been filtered in `get_relevant_members` function based on the speeches data. This function matches the value of the `intressent_id` in the speeches list of dict to the value of `intressent_id` in the members list of dict.
 
-members
+6. Now that we have the relevant keys and values of the ten latest speeches and the relevant keys and values of the members data based on those speeches, the data has been merged. The required output should be as follows:
+
+when `intressent_id` matches
 ```
+{
+  "anforande_id": value,
+  "bild_url_192": value,
+  "dok_datum": value,
+  "dok_titel: value,
+  "intressent_id": value,
+  "parti": value, 
+  "protokoll_url_www": value, 
+  "tilltalsnamn": value,
+  "valkrets": value,
+  }
+```
+
+when `intressent_id` does not match or exist
+```
+{
+  "anforande_id": value,
+  "dok_datum": value,
+  "dok_titel": value,
+  "parti": value, 
+  "protokoll_url_www": value, 
+  "intressent_id": value
+  }
+```
+
+In order to merger the data and get the ten latest speeches with relevant keys and values, the ten latest speeches has been using the `create_speeches_dict` and the relevant members data has been called using the `get_relevant_members` function. In order to merge the speeches and members data together, both data has been matched using the `intressent_id` and an update() will merge both data sets together.
+
+However, a concern is that the update() only returns the items that have been updated and merged together. In order to solve this problem, the `ten_latest_speeches_dup.append(s)` has been kept outside the if condition's indent. This solves the problem of returning the updated/merged items along with the remaining items that did not need a merge (since their data was not in the members resources).
+
+However, another concern araises because this returns duplicate items. In order to solve this problem, the `set()` function is used and to maintain the order a `tuple()` function is used.
+
+## Server
+
+The `create app` function is responsible for creating the server and the `main` is used to run the server. This application uses a localhost and port 8080.
+
+## How to run locally
+
+This app uses the curl request (>> curl -X GET "localhost:8080/ten-latest-speeches") which has been mapped to the `get_ten_latest_speeches` function in the `create_app` function.
+
+```
+Serving on http://StephenDsouza:8080
+
 [
   {
-    'valkrets': ['Stockholms kommun'], 
-    'bild_url_192': ['http://data.riksdagen.se/filarkiv/bilder/ledamot/979e9852-69ed-4077-8140-52ab99414a6c_192.jpg'], 'uppgift': [], 
-    'intressent_id_FK': ['014386615025']
+    'anforande_id': '1c4cbd6a-0116-ea11-912c-901b0e9b71a8', 
+    'dok_datum': '2019-12-03', 
+    'parti': 'S', 
+    'dok_titel': 'Svar på interpellation 2019/20:112 om arbetsmiljö och psykisk ohälsa', 
+    'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf41', 
+    'intressent_id': '0661583406713'
+    },
+  {
+    'anforande_id': '1b4cbd6a-0116-ea11-912c-901b0e9b71a8', 
+    'dok_datum': '2019-12-03', 
+    'parti': 'M', 
+    'dok_titel': 'Svar på interpellation 2019/20:112 om arbetsmiljö och psykisk ohälsa', 
+    'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf40', 
+    'intressent_id': '0671241874717', 
+    'tilltalsnamn': 'Elisabeth', 
+    'valkrets': 'Västerbottens län', 
+    'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/96765f90-7072-436d-8143-264d7cbd7fa9_192.jpg'
     }, 
-
-  {'valkrets': ['Stockholms kommun'], 'bild_url_192': ['http://data.riksdagen.se/filarkiv/bilder/ledamot/979e9852-69ed-4077-8140-52ab99414a6c_192.jpg'], 'uppgift': [], 'intressent_id_FK': ['014386615025']}, 
-  {'valkrets': ['Stockholms kommun'], 'bild_url_192': ['http://data.riksdagen.se/filarkiv/bilder/ledamot/979e9852-69ed-4077-8140-52ab99414a6c_192.jpg'], 'uppgift': [], 'intressent_id_FK': ['014386615025']}, 
-  {'valkrets': ['Stockholms kommun'], 'bild_url_192': ['http://data.riksdagen.se/filarkiv/bilder/ledamot/5b7ac02c-0819-426d-bc5d-41b8c21ca4dd_192.jpg'], 'uppgift': [], 'intressent_id_FK': ['0216534495014']}
+  {'anforande_id': '1a4cbd6a-0116-ea11-912c-901b0e9b71a8', 'dok_datum': '2019-12-03', 'parti': 'S', 'dok_titel': 'Svar på interpellation 2019/20:112 om arbetsmiljö och psykisk ohälsa', 'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf39', 'intressent_id': '0661583406713'}, 
+  {'anforande_id': '194cbd6a-0116-ea11-912c-901b0e9b71a8', 'dok_datum': '2019-12-03', 'parti': 'M', 'dok_titel': 'Svar på interpellation 2019/20:112 om arbetsmiljö och psykisk ohälsa', 'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf38', 'intressent_id': '0671241874717', 'tilltalsnamn': 'Elisabeth', 'valkrets': 'Västerbottens län', 'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/96765f90-7072-436d-8143-264d7cbd7fa9_192.jpg'}, 
+  {'anforande_id': '184cbd6a-0116-ea11-912c-901b0e9b71a8', 'dok_datum': '2019-12-03', 'parti': 'S', 'dok_titel': 'Svar på interpellation 2019/20:112 om arbetsmiljö och psykisk ohälsa', 'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf37', 'intressent_id': '0661583406713'}, 
+  {'anforande_id': '174cbd6a-0116-ea11-912c-901b0e9b71a8', 'dok_datum': '2019-12-03', 'parti': 'M', 'dok_titel': 'Svar på interpellation 2019/20:112 om arbetsmiljö och psykisk ohälsa', 'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf36', 'intressent_id': '0671241874717', 'tilltalsnamn': 'Elisabeth', 'valkrets': 'Västerbottens län', 'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/96765f90-7072-436d-8143-264d7cbd7fa9_192.jpg'}, 
+  {'anforande_id': '164cbd6a-0116-ea11-912c-901b0e9b71a8', 'dok_datum': '2019-12-03', 'parti': 'S', 'dok_titel': 'Svar på interpellation 2019/20:112 om arbetsmiljö och psykisk ohälsa', 'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf35', 'intressent_id': '0661543/#anf35', 'intressent_id': '0661583406713'}, 
+  {'anforande_id': '154cbd6a-0116-ea11-912c-901b0e9b71a8', 'dok_datum': '2019-12-03', 'parti': 'S', 'dok_titel': 'Svar på interpellatioprotokoll_url_www': 'http://www.rikn 2019/20:111 om utvecklingstid', 'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf34', 'intressent_id': '066 'dok_datum': '2019-12-03', 'parti'1583406713'}, 
+  {'anforande_id': '144cbd6a-0116-ea11-912c-901b0e9b71a8', 'dok_datum': '2019-12-03', 'parti': 'M', 'dok_titel': 'Svar på interpellation 2019/20:111 om utvecklingstid',koll_H70943/#anf33', 'intressent_id 'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf33', 'intressent_id': '0588282566419', 'tilltalsnamn': 'Lar.jpg'}, 
+  {'anforande_id': '134cbd6a-s', 'valkrets': 'Gävleborgs län', 'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/db90fc94-9496-4748-9b84-bcfadc24af74_192.jpg'}, {'anforande_id': '134cbd6a-0116-en.se/sv/Dokument-Lagar/Kammaren/Prea11-912c-901b0e9b71a8', 'dok_datum': '2019-12-03', 'parti': 'S', 'dok_titel': 'Svar på interpellation 2019/20:111 om utvecklingstid', 'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf32', 'intressent_id': '0661583406713'}
   ]
-```
-
-6. Merge data
-
-### Problems
-Need to find a way to merge the data together.
-
-Currenty speeches and members are in one list but this needs to be changed.
-```
-[
-  {'anforande_id': ['49102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Arbetsmarknadsministern Eva Nordmark (S)'], 'parti': ['S'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf170'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0661583406713']}, 
-  
-  {'anforande_id': ['48102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Ali Esbati (V)'], 'parti': ['V'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf169'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['014386615025']}, 
-  
-  {'anforande_id': ['47102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Arbetsmarknadsministern Eva Nordmark (S)'], 'parti': ['S'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf168'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0661583406713']}, 
-  
-  {'anforande_id': ['46102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Ali Esbati (V)'], 'parti': ['V'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf167'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['014386615025']}, 
-  
-  {'anforande_id': ['45102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Arbetsmarknadsministern Eva Nordmark (S)'], 'parti': ['S'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf166'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0661583406713']}, 
-  
-  
-  {'anforande_id': ['44102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Ali Esbati (V)'], 'parti': ['V'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf165'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['014386615025']}, 
-  
-  {'anforande_id': ['43102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Arbetsmarknadsministern Eva Nordmark (S)'], 'parti': ['S'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf164'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0661583406713']}, 
-  
-  {'anforande_id': ['42102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Infrastrukturministern Tomas Eneroth (S)'], 'parti': ['S'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf163'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0284192765516']}, 
-  
-  {'anforande_id': ['41102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Jens Holm (V)'], 'parti': ['V'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf162'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0216534495014']}, 
-  
-  {'anforande_id': ['40102c9a-e312-ea11-912c-901b0e9b71a8'], 'dok_datum': ['2019-11-29'], 'talare': ['Infrastrukturministern Tomas Eneroth (S)'], 'parti': ['S'], 'protokoll_url_www': ['http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70941/#anf161'], 'dok_titel': ['Protokoll 2019/20:41 Fredagen den 29 november'], 'intressent_id': ['0284192765516']}, 
-  
-  
-  {'valkrets': ['Stockholms kommun'], 'bild_url_192': ['http://data.riksdagen.se/filarkiv/bilder/ledamot/979e9852-69ed-4077-8140-52ab99414a6c_192.jpg'], 'uppgift': [], 'intressent_id_FK': ['014386615025']}, 
-  
-  {'valkrets': ['Stockholms kommun'], 'bild_url_192': ['http://data.riksdagen.se/filarkiv/bilder/ledamot/979e9852-69ed-4077-8140-52ab99414a6c_192.jpg'], 'uppgift': [], 'intressent_id_FK': ['014386615025']}, 
-  
-  {'valkrets': ['Stockholms kommun'], 'bild_url_192': ['http://data.riksdagen.se/filarkiv/bilder/ledamot/979e9852-69ed-4077-8140-52ab99414a6c_192.jpg'], 'uppgift': [], 'intressent_id_FK': ['014386615025']}, 
-  
-  {'valkrets': ['Stockholms kommun'], 'bild_url_192': ['http://data.riksdagen.se/filarkiv/bilder/ledamot/5b7ac02c-0819-426d-bc5d-41b8c21ca4dd_192.jpg'], 'uppgift': [], 'intressent_id_FK': ['0216534495014']}
-  ]
-```
-
-### Required output
-
-when common object matches
-```
-{
-  "anforande_id": value,
-  "dok_datum": value,
-  "talare": value,
-  "parti": value, 
-  "protokoll_url_www": value, 
-  "dok_titel": value,
-  "intressent_id": value
-  "valkrets": value,
-  "bild_url_192": value,
-  "uppgift": value,
-  }
-```
-
-when common object does not exist
-```
-{
-  "anforande_id": value,
-  "dok_datum": value,
-  "talare": value,
-  "parti": value, 
-  "protokoll_url_www": value, 
-  "dok_titel": value,
-  "intressent_id": value
-  }
 ```
