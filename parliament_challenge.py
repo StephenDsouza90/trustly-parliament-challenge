@@ -5,7 +5,12 @@ from flask import Flask, request, json
 
 
 def get_speeches():
-    # use speeches api to extract data
+    """
+    Use speech's api to get all speech resources.
+    Speech api uses filter to get ten latest speeches.
+    Loop through nested dict to return all items in the "anforande" key.
+    """    
+
     domain = 'http://data.riksdagen.se'
     speeches = 'anforandelista'
     size = 10
@@ -20,7 +25,10 @@ def get_speeches():
 
 
 def get_members():
-    # use members api to extract data
+    """
+    Use member's api to get all member resources.
+    Loop through nested dict to return all items in the "person" key.
+    """    
     domain = 'http://data.riksdagen.se'
     members = 'personlista'
     format_type = 'json'
@@ -34,101 +42,124 @@ def get_members():
 
 
 def create_speeches_dict():
-    # get speeches data from get_speeches func
-    speeches_data = get_speeches()
-    
-    # loop through speeches_data to return relevant keys and values of ten latest speeches
-    relevant_speeches = []
+    """
+    Call the get_speeches function and create a dict of the relevant items.
+    """
 
+    speeches_data = get_speeches()
+
+    relevant_speeches = []
     for speeches in speeches_data:
         anforande_id = [v for k, v in speeches.items() if k == "anforande_id"]
         dok_datum = [v for k, v in speeches.items() if k == "dok_datum"]
-        talare = [v for k, v in speeches.items() if k =="talare"]
         parti = [v for k, v in speeches.items() if k == "parti"]
+        avsnittsrubrik = [v for k, v in speeches.items() if k == "avsnittsrubrik"]
         protokoll_url_www = [v for k, v in speeches.items() if k == "protokoll_url_www"]
-        dok_titel = [v for k, v in speeches.items() if k == "dok_titel"]
-        intressent_id = [v for k, v in speeches.items() if k == "intressent_id"] # to be removed later            
+        intressent_id = [v for k, v in speeches.items() if k == "intressent_id"]
 
         speechesDict = {
-            "anforande_id": anforande_id,
-            "dok_datum": dok_datum,
-            "talare": talare,
-            "parti": parti, 
-            "protokoll_url_www": protokoll_url_www, 
-            "dok_titel": dok_titel,
-            "intressent_id": intressent_id
+            "anforande_id": anforande_id[0],
+            "dok_datum": dok_datum[0],
+            "parti": parti[0], 
+            "dok_titel": avsnittsrubrik[0],
+            "protokoll_url_www": protokoll_url_www[0], 
+            "intressent_id": intressent_id[0]
             }
         relevant_speeches.append(speechesDict)
     return relevant_speeches
 
 
 def create_members_dict():
-    # get members data from get_members func
+    """
+    Call the get_members function and create a dict of the relevant items.
+    Returning all member details. 
+    """
+
     members_data = get_members()
 
-    # loop through members_data to return relevant values of ONLY those keys that are needed
     all_members = []
     for members in members_data:
+        tilltalsnamn = [v for k, v in members.items() if k =="tilltalsnamn"]
         valkrets = [v for k, v in members.items() if k == "valkrets"]
         bild_url_192 = [v for k, v in members.items() if k == "bild_url_192"]
-        uppgift = [v for k, v in members.items() if k == "uppgift"] # email not come
-        intressent_id = [v for k, v in members.items() if k == "intressent_id"] # to be removed later
+        intressent_id = [v for k, v in members.items() if k == "intressent_id"]
 
         membersDict = {
-            "valkrets": valkrets,
-            "bild_url_192": bild_url_192,
-            "uppgift": uppgift,
-            "intressent_id": intressent_id
+            "tilltalsnamn": tilltalsnamn[0],
+            "valkrets": valkrets[0],
+            "bild_url_192": bild_url_192[0],
+            "intressent_id": intressent_id[0]
             }
         all_members.append(membersDict)
     return all_members
 
 
 def get_relevant_members():
+    """
+    To get only relevant member details based on the speeches data,
+    match member details to speeches data through a key/value 
+    that matches in both data sets.
+    Here the key "intressent_id" and its value is common in both data sets.
+    Call both dicts that have been created in the create_speeches_dict 
+    and create_members_dict function.
+    Match the intressent_id in speeches data with intressent_id in members data
+    """
+
     speeches_data = create_speeches_dict()
     members_data = create_members_dict()
 
-    # access the value of FK in speeches_data and match that with the value of FK in the members_data
-    relevant_members_dict = []
-    for s in speeches_data:
-        intressent_id = s["intressent_id"]
-        for m in members_data:
-            intressent_id_FK = m["intressent_id"]
-            if intressent_id == intressent_id_FK:
-                relevant_members = m
-                relevant_members_dict.append(relevant_members)
-    return relevant_members_dict
+    speeches_fk = [fk['intressent_id'] for fk in speeches_data]
+    members_fk = [fk for fk in members_data if fk['intressent_id'] in speeches_fk]
+    return members_fk
 
 
 def create_app():
+    """
+    Create app
+    """
     app = Flask("Parliament Challenge")
-
 
     @app.route('/ten-latest-speeches', methods=['GET'])
     def get_ten_latest_speeches():
         """
-        curl -X GET "localhost:8080/ten-latest-speeches"
+        GET request:
+            >> curl -X GET "localhost:8080/ten-latest-speeches"
         """
-        # ten latest speeches
-        speeches = create_speeches_dict()
-
-        # relevant members data based on FK
-        # only some members data are there as some do not exist
-        members = get_relevant_members()
-
-        # merge both data together
-        ten_latest_speeches = []
-
-        if speeches:
-            for s in speeches:
-                ten_latest_speeches.append(s)
+        """
+        Merger function: 
+        Call the create_speeches_dict that holds the ten latest speeches
+        with the relevant items.
+        Call the get_relevant_members function that holds the relevant
+        items of the members.
+        Loop through both data sets to match the "intressent_id" and 
+        merge the dict if match. 
+        If the "ten_latest_speeches_dup.append(s)" is indented with the "s.update(m)",
+        it returns only the updated speeches & members dict.
+        If removed from the indent, it returns the updated dict as well as remaining dict
+        but it also returns duplicates.
+        In order to solve this, loop through the "ten_latest_speeches_dup" and remove duplicates.
+        Set() does not hold duplicate items. Tuple() is used to maintain the order.
+        """
     
-        if members:
+        speeches = create_speeches_dict()
+        members = get_relevant_members()
+        
+        ten_latest_speeches_dup = []
+        for s in speeches:
             for m in members:
-                ten_latest_speeches.append(m)
+                if s["intressent_id"] == m["intressent_id"]:
+                    s.update(m)
+                ten_latest_speeches_dup.append(s)
 
+        remove_dup = set()
+        ten_latest_speeches = []
+        for dup in ten_latest_speeches_dup:
+            tup = tuple(dup.items())
+            if tup not in remove_dup:
+                remove_dup.add(tup)
+                ten_latest_speeches.append(dup)
         print(ten_latest_speeches)
-        return json.dumps(ten_latest_speeches)    
+        return json.dumps(ten_latest_speeches)
     return app
 
 
