@@ -14,7 +14,7 @@ def get_speeches_api():
 
     domain = 'http://data.riksdagen.se'
     speeches = 'anforandelista'
-    size = 6
+    size = 10
     format_type = 'json'
     response = requests.get('{}/{}/?anftyp=Nej&sz={}&utformat={}'.format(domain, speeches, size, format_type))
     if response.status_code == 200:
@@ -43,7 +43,10 @@ def create_speeches_dict():
             "dok_datum": dok_datum[0],
             "parti": parti[0], 
             "avsnittsrubrik": avsnittsrubrik[0],
-            "protokoll_url_www": protokoll_url_www[0], 
+            "links": [{ 
+                    "rel": "speech",
+                    "href": protokoll_url_www[0]
+                    }],
             "intressent_id": intressent_id[0]
             }
         speeches_list.append(speechesDict)

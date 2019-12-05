@@ -54,7 +54,10 @@ The challenge is approached as follows:
   'dok_datum': 'value', 
   'parti': 'value', 
   'avsnittsrubrik': 'value', 
-  'protokoll_url_www': 'value', 
+  'links': [{
+        'rel': 'speech', 
+        'href': 'vale'
+      }], 
   'intressent_id': 'value', 
   'tilltalsnamn': 'value', 
   'valkrets': 'value', 
@@ -79,10 +82,14 @@ Serving on http://StephenDsouza:8080
     'dok_datum': '2019-12-04', 
     'parti': 'MP', 
     'avsnittsrubrik': 'Samhällsplanering, bostadsförsörjning och byggande samt konsumentpolitik', 
-    'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70944/#anf199', 
+    'links': [{
+        'rel': 'speech', 
+        'href': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70944/#anf199'
+      }], 
     'intressent_id': '0999976269027', 
     'tilltalsnamn': 'Amanda', 
-    'valkrets': 'Stockholms län', 
+    'valkrets': 
+    'Stockholms län', 
     'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/d12313ba-680b-4784-b858-5c9e6db692e7_192.jpg'
   }, 
   {
@@ -90,22 +97,14 @@ Serving on http://StephenDsouza:8080
     'dok_datum': '2019-12-04', 
     'parti': 'V', 
     'avsnittsrubrik': 'Samhällsplanering, bostadsförsörjning och byggande samt konsumentpolitik', 
-    'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70944/#anf194', 
+    'links': [{
+        'rel': 'speech', 
+        'href': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70944/#anf194'
+      }], 
     'intressent_id': '0272006117024', 
     'tilltalsnamn': 'Jon', 
     'valkrets': 'Hallands län', 
     'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/e66d3e3a-3f97-4942-bc4a-f4aa89ad365a_192.jpg'
-  }, 
-  {
-    'anforande_id': '817ba0aa-e216-ea11-912c-901b0e9b71a8', 
-    'dok_datum': '2019-12-04', 
-    'parti': 'SD', 
-    'avsnittsrubrik': 'Samhällsplanering, bostadsförsörjning och byggande samt konsumentpolitik', 
-    'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70944/#anf193', 
-    'intressent_id': '0468956880528', 
-    'tilltalsnamn': 'Mikael', 
-    'valkrets': 'Skåne läns norra och östra', 
-    'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/cf98df89-2103-40cc-8524-b2df33125a3f_192.jpg'
   }
 ]
 ```
