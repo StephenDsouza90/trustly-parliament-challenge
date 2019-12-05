@@ -26,11 +26,9 @@ The link to the challenge can be found on https://github.com/trustly/parliament-
 
 The challenge is approached as follows:
 
-1. The function `get_speeches()` is responsible for getting the speeches resources from its respective apis. The speeches api has a filter to extract the ten latest speeches. Since the data is in a nested dict, the for loop has been used to iterate over to the required dict which is "anforande". Speech api: http://data.riksdagen.se/anforandelista/?anftyp=Nej&sz=10&utformat=json
+1. The function `get_speeches_api()` is responsible for getting the speech resources from its respective apis. The speech's api has a filter to extract the number of latest speeches. The for loop has been used to iterate over to the required dict which is "anforande". Speech api: http://data.riksdagen.se/anforandelista/?anftyp=Nej&sz=10&utformat=json
 
-2. The function `get_members()` is responsible for getting the members resources from its respective apis. Here all members data has been extracted. Since the data is in a nested dict, the for loop has been used to iterate over to the required dict which is "person". Members api: http://data.riksdagen.se/personlista/?iid=&fnamn=&enamn=&f_ar=&kn=&parti=&valkrets=&rdlstatus=&org=&utformat=json&sort=sorteringsnamn&sortorder=asc&termlista=
-
-3. Now since the ten latest speeches are in the `get_speeches()` function, a list of dict has been created in the `create_speeches_dict()` function contianing only the relevant keys and values of speeches. An additional key and value `intressent_id` has been added which can be used as a foreign key and be useful for merging the speeches data to members data. The relevant keys are:
+2. As the required number of latest speeches are in the `get_speeches_api()` function, a list of dict is created in the `create_speeches_dict()` function containing only the relevant keys and values. An additional key and value `intressent_id` is added which can be used as a reference key and be useful for merging the speeches data to members data. The relevant keys are:
 - anforande_id
 - dok_datum
 - parti
@@ -38,48 +36,31 @@ The challenge is approached as follows:
 - protokoll_url_www
 - intressent_id 
 
-4. Now since we have all the members data in the `get_members()` function, a list of dict has been created in the `create_members_dict()` function containing only the relevant keys and values of all memebers. An additional key and value `intressent_id` has been added which can be used as a foreign key and be useful for merging the speeches data to members data. The relevant keys are: 
+3. In order get the relevant member's data by using the reference key, the `create_speeches_reference_list()` creates a list of all the reference keys and this list is passed on to the `get_members_api()` function.
+
+4. The function `get_members_api()` is responsible for getting the relevant member resources from its respective apis. By using the reference key, the relevant member's data is extracted. The for loop has been used to iterate over to the required dict which is "person". Members api: http://data.riksdagen.se/personlista/?iid=&utformat=json
+
+5. As the required member's data is in the `get_members_api()` function, a list of dict is created in the `create_members_dict()` function containing only the relevant keys and values of memebers. An additional key and value `intressent_id` is added which can be used as a reference key and be useful for merging the speeches data to members data. The relevant keys are: 
 - tilltalsnamn
 - valkrets 
 - bild_url_192
 - intressent_id
 
-5. Some of the speakers/speeches in the speeches data are not in the members resource api, therefore, the relevant members data has been filtered in `get_relevant_members()` function based on the speeches data. This function matches the value of the `intressent_id` in the speeches list of dict to the value of the `intressent_id` in the members list of dict.
+6. As the relevant keys and values of the latest speeches and the relevant keys and values of the members data based on those speeches has been created in the `create_speeches_dict()` and `create_members_dict()` functions respectively, the data is merged by matching the reference keys from both data sets and an `update()` function merges both data sets together. The required output is as follows:
 
-6. Now that we have the relevant keys and values of the ten latest speeches and the relevant keys and values of the members data based on those speeches, the data has been merged. The required output should be as follows:
-
-when `intressent_id` matches
 ```
 {
-  "anforande_id": value,
-  "dok_datum": value,
-  "parti": value,
-  "avsnittsrubrik: value,
-  "protokoll_url_www": value,
-  "intressent_id": value, 
-  "tilltalsnamn": value, 
-  "valkrets": value,
-  "bild_url_192": value
-  }
+  'anforande_id': 'value', 
+  'dok_datum': 'value', 
+  'parti': 'value', 
+  'avsnittsrubrik': 'value', 
+  'protokoll_url_www': 'value', 
+  'intressent_id': 'value', 
+  'tilltalsnamn': 'value', 
+  'valkrets': 'value', 
+  'bild_url_192': 'value'
+}
 ```
-
-when `intressent_id` does not match or exist
-```
-{
-  "anforande_id": value,
-  "dok_datum": value,
-  "parti": value,
-  "avsnittsrubrik": value, 
-  "protokoll_url_www": value, 
-  "intressent_id": value
-  }
-```
-
-In order to merger the data to get the ten latest speeches with relevant keys and values (with both speeches and members data), the `create_speeches_dict()`and `get_relevant_members()` function has been called since the relevant items are stored in the list of dict in these functions. In order to merge the speeches and members data together, both dicts have been matched by the `intressent_id` and an `update()` function merges both data sets together.
-
-However, a concern is that the `update()` only returns the items that have been updated and merged together. In order to solve this problem, the `ten_latest_speeches_dup.append(s)` has been kept outside the if condition's indent. This solves the problem of returning the updated/merged items along with the remaining items that did not need a merge (since those speeches data was not in the members resources).
-
-However, another concern araises because this returns duplicate items. In order to solve this problem, the `set()` function is used remove duplicate items and `tuple()` function is used to maintain the order.
 
 ## Server
 
@@ -94,31 +75,37 @@ Serving on http://StephenDsouza:8080
 
 [
   {
-    "anforande_id": "1c4cbd6a-0116-ea11-912c-901b0e9b71a8", 
-    "avsnittsrubrik": "Svar p\u00e5 interpellation 2019/20:112 om arbetsmilj\u00f6 och psykisk oh\u00e4lsa", 
-    "dok_datum": "2019-12-03", 
-    "intressent_id": "0661583406713", 
-    "parti": "S", 
-    "protokoll_url_www": "http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf41"
-    }, 
+    'anforande_id': '877ba0aa-e216-ea11-912c-901b0e9b71a8', 
+    'dok_datum': '2019-12-04', 
+    'parti': 'MP', 
+    'avsnittsrubrik': 'Samhällsplanering, bostadsförsörjning och byggande samt konsumentpolitik', 
+    'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70944/#anf199', 
+    'intressent_id': '0999976269027', 
+    'tilltalsnamn': 'Amanda', 
+    'valkrets': 'Stockholms län', 
+    'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/d12313ba-680b-4784-b858-5c9e6db692e7_192.jpg'
+  }, 
   {
-    "anforande_id": "1b4cbd6a-0116-ea11-912c-901b0e9b71a8", 
-    "avsnittsrubrik": "Svar p\u00e5 interpellation 2019/20:112 om arbetsmilj\u00f6 och psykisk oh\u00e4lsa", 
-    "bild_url_192": "http://data.riksdagen.se/filarkiv/bilder/ledamot/96765f90-7072-436d-8143-264d7cbd7fa9_192.jpg", 
-    "dok_datum": "2019-12-03", 
-    "intressent_id": "0671241874717", 
-    "parti": "M", 
-    "protokoll_url_www": "http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf40", 
-    "tilltalsnamn": "Elisabeth", 
-    "valkrets": "V\u00e4sterbottens l\u00e4n"
-    }, 
-  {"anforande_id": "1a4cbd6a-0116-ea11-912c-901b0e9b71a8", "avsnittsrubrik": "Svar p\u00e5 interpellation 2019/20:112 om arbetsmilj\u00f6 och psykisk oh\u00e4lsa", "dok_datum": "2019-12-03", "intressent_id": "0661583406713", "parti": "S", "protokoll_url_www": "http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf39"}, 
-  {"anforande_id": "194cbd6a-0116-ea11-912c-901b0e9b71a8", "avsnittsrubrik": "Svar p\u00e5 interpellation 2019/20:112 om arbetsmilj\u00f6 och psykisk oh\u00e4lsa", "bild_url_192": "http://data.riksdagen.se/filarkiv/bilder/ledamot/96765f90-7072-436d-8143-264d7cbd7fa9_192.jpg", "dok_datum": "2019-12-03", "intressent_id": "0671241874717", "parti": "M", "protokoll_url_www": "http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf38", "tilltalsnamn": "Elisabeth", "valkrets": "V\u00e4sterbottens l\u00e4n"}, 
-  {"anforande_id": "184cbd6a-0116-ea11-912c-901b0e9b71a8", "avsnittsrubrik": "Svar p\u00e5 interpellation 2019/20:112 om arbetsmilj\u00f6 och psykisk oh\u00e4lsa", "dok_datum": "2019-12-03", "intressent_id": "0661583406713", "parti": "S", "protokoll_url_www": "http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf37"}, 
-  {"anforande_id": "174cbd6a-0116-ea11-912c-901b0e9b71a8", "avsnittsrubrik": "Svar p\u00e5 interpellation 2019/20:112 om arbetsmilj\u00f6 och psykisk oh\u00e4lsa", "bild_url_192": "http://data.riksdagen.se/filarkiv/bilder/ledamot/96765f90-7072-436d-8143-264d7cbd7fa9_192.jpg", "dok_datum": "2019-12-03", "intressent_id": "0671241874717", "parti": "M", "protokoll_url_www": "http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf36", "tilltalsnamn": "Elisabeth", "valkrets": "V\u00e4sterbottens l\u00e4n"}, 
-  {"anforande_id": "164cbd6a-0116-ea11-912c-901b0e9b71a8", "avsnittsrubrik": "Svar p\u00e5 interpellation 2019/20:112 om arbetsmilj\u00f6 och psykisk oh\u00e4lsa", "dok_datum": "2019-12-03", "intressent_id": "0661583406713", "parti": "S", "protokoll_url_www": "http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf35"}, 
-  {"anforande_id": "154cbd6a-0116-ea11-912c-901b0e9b71a8", "avsnittsrubrik": "Svar p\u00e5 interpellation 2019/20:111 om utvecklingstid", "dok_datum": "2019-12-03", "intressent_id": "0661583406713", "parti": "S", "protokoll_url_www": "http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf34"}, 
-  {"anforande_id": "144cbd6a-0116-ea11-912c-901b0e9b71a8", "avsnittsrubrik": "Svar p\u00e5 interpellation 2019/20:111 om utvecklingstid", "bild_url_192": "http://data.riksdagen.se/filarkiv/bilder/ledamot/db90fc94-9496-4748-9b84-bcfadc24af74_192.jpg", "dok_datum": "2019-12-03", "intressent_id": "0588282566419", "parti": "M", "protokoll_url_www": "http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf33", "tilltalsnamn": "Lars", "valkrets": "G\u00e4vleborgs l\u00e4n"},   
-  {"anforande_id": "134cbd6a-0116-ea11-912c-901b0e9b71a8", "avsnittsrubrik": "Svar p\u00e5 interpellation 2019/20:111 om utvecklingstid", "dok_datum": "2019-12-03", "intressent_id": "0661583406713", "parti": "S", "protokoll_url_www": "http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70943/#anf32"}
-  ]
+    'anforande_id': '827ba0aa-e216-ea11-912c-901b0e9b71a8', 
+    'dok_datum': '2019-12-04', 
+    'parti': 'V', 
+    'avsnittsrubrik': 'Samhällsplanering, bostadsförsörjning och byggande samt konsumentpolitik', 
+    'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70944/#anf194', 
+    'intressent_id': '0272006117024', 
+    'tilltalsnamn': 'Jon', 
+    'valkrets': 'Hallands län', 
+    'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/e66d3e3a-3f97-4942-bc4a-f4aa89ad365a_192.jpg'
+  }, 
+  {
+    'anforande_id': '817ba0aa-e216-ea11-912c-901b0e9b71a8', 
+    'dok_datum': '2019-12-04', 
+    'parti': 'SD', 
+    'avsnittsrubrik': 'Samhällsplanering, bostadsförsörjning och byggande samt konsumentpolitik', 
+    'protokoll_url_www': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70944/#anf193', 
+    'intressent_id': '0468956880528', 
+    'tilltalsnamn': 'Mikael', 
+    'valkrets': 'Skåne läns norra och östra', 
+    'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/cf98df89-2103-40cc-8524-b2df33125a3f_192.jpg'
+  }
+]
 ```
