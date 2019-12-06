@@ -125,16 +125,15 @@ def create_app():
     def get_ten_latest_speeches():
         """
         GET request:
-            >> curl -X GET "localhost:8080/ten-latest-speeches"
-        """
-        """
+            curl -X GET "localhost:8080/ten-latest-speeches"
+
         Merger function: 
-        Loop through the create_speeches_dict() which contains 
-        the ten latest speeches with the relevant items.
-        Loop through the create_members_dict() which that contians
-        the relevant items of the members.
-        Merge relevant speeches data to members data if reference key 
-        "intressent_id" from speeches matches members.
+            Loop through the create_speeches_dict() which contains 
+            the ten latest speeches with the relevant items.
+            Loop through the create_members_dict() which that contians
+            the relevant items of the members.
+            Merge relevant speeches data to members data if reference key 
+            "intressent_id" from speeches matches members.
         """
     
         speeches = create_speeches_dict()
@@ -144,9 +143,10 @@ def create_app():
             for m in members:
                 if s["intressent_id"] == m["intressent_id"]:
                     s.update(m)
-                    ten_latest_speeches.append(s)
+            ten_latest_speeches.append(s)
         print(ten_latest_speeches)
         return json.dumps(ten_latest_speeches)
+
     return app
 
 
