@@ -4,149 +4,101 @@ import flask
 from flask import Flask, request, json
 
 
-def get_speeches_api():
+def filter_speeches_dict(speeches):
     """
-    Use speech's api to get speech resources.
-    Speech's api gets latest speeches and size determines how many resources to get.
-    Loop through dict to return all values in the "anforande" key.
-    These values include the keys and values of the speeches.
+    Filter speeches data for relevant items.
     """
 
-    domain = 'http://data.riksdagen.se'
-    speeches = 'anforandelista'
-    size = 10
-    format_type = 'json'
-    response = requests.get('{}/{}/?anftyp=Nej&sz={}&utformat={}'.format(domain, speeches, size, format_type))
-    if response.status_code == 200:
-        data = response.json()
-        for k, v in data.items():
-            anforande = v["anforande"]
-            return anforande
-
-
-def create_speeches_dict():
-    """
-    Use the get_speeches_api() function to create a dict of the relevant items.
-    """
-
-    speeches_data = get_speeches_api()
     speeches_list = []
-    for speeches in speeches_data:
-        anforande_id = [v for k, v in speeches.items() if k == "anforande_id"]
-        dok_datum = [v for k, v in speeches.items() if k == "dok_datum"]
-        parti = [v for k, v in speeches.items() if k == "parti"]
-        avsnittsrubrik = [v for k, v in speeches.items() if k == "avsnittsrubrik"]
-        protokoll_url_www = [v for k, v in speeches.items() if k == "protokoll_url_www"]
-        intressent_id = [v for k, v in speeches.items() if k == "intressent_id"]
+    for s in speeches:
         speechesDict = {
-            "anforande_id": anforande_id[0],
-            "dok_datum": dok_datum[0],
-            "parti": parti[0], 
-            "avsnittsrubrik": avsnittsrubrik[0],
+            "anforande_id": s.get("anforande_id"),
+            "dok_datum": s.get("dok_datum"),
+            "parti": s.get("parti"), 
+            "avsnittsrubrik": s.get("avsnittsrubrik"),
             "links": [{ 
-                    "rel": "speech",
-                    "href": protokoll_url_www[0]
+                "rel": "speech",
+                "href": s.get("protokoll_url_www")
                     }],
-            "intressent_id": intressent_id[0]
+            "intressent_id": s.get("intressent_id")
             }
         speeches_list.append(speechesDict)
     return speeches_list
 
 
-def create_speeches_reference_list():
+def filter_member_dict(member):
     """
-    Create a reference list from create_speeches_dict()
-    so that the reference value can be used in the member's
-    api to filter to the relevant member's data. 
+    Filter member data for relevant items.
     """
 
-    speeches_data = create_speeches_dict()
-    reference_list = []
-    for reference in speeches_data:
-        ref = reference["intressent_id"]
-        reference_list.append(ref)
-    return reference_list
+    membersDict = {
+        "tilltalsnamn": member.get("tilltalsnamn"),
+        "valkrets": member.get("valkrets"),
+        "bild_url_192": member.get("bild_url_192"),
+        "intressent_id": member.get("intressent_id")
+    }
+    return membersDict
 
 
-def get_members_api():
+def get_member_data(intressent_id):
     """
-    Use member's api to get member resources.
-    Member's api uses reference id from create_speeches_reference_list() 
-    to filter to the relevant member's data.
-    Loop through dict to return all values in the "person" key.
-    These values include the keys and values of the members.
+    Get memeber data filter for relevant items.
     """
 
-    reference = create_speeches_reference_list()    
-    members_list = []
-    for ref in reference:
-        domain = 'http://data.riksdagen.se'
-        members = 'personlista'
-        reference = ref
-        format_type = 'json'
-        response = requests.get('{}/{}/?iid={}&utformat={}'.format(domain, members, reference, format_type))
-        if response.status_code == 200:
-            data = response.json()
-            for k, v in data.items():
-                person = v["person"]
-                members_list.append(person)
-    return members_list
+    domain = 'http://data.riksdagen.se'
+    members = 'personlista'
+    format_type = 'json'
+    response = requests.get('{}/{}/?iid={}&utformat={}'.format(domain, members, intressent_id, format_type))
+    if response.status_code == 200:
+        data = response.json()
+        member = data["personlista"]["person"]
+        filtered_member = filter_member_dict(member)
+        return filtered_member
 
 
-def create_members_dict():
+def get_speeches_data(anftyp, size):
     """
-    Use the get_members_api() function to create a dict of the relevant items.
+    Get speeches data and filter for relevant items.
+    Loop through filtered speeches to get "intressent id" 
+    and pass it as an argurment to the get_member_data 
+    to get member data.
+    Update the member data with speech data.
     """
 
-    members_data = get_members_api()
-    members_list = []
-    for members in members_data:
-        tilltalsnamn = [v for k, v in members.items() if k == "tilltalsnamn"]
-        valkrets = [v for k, v in members.items() if k == "valkrets"]
-        bild_url_192 = [v for k, v in members.items() if k == "bild_url_192"]
-        intressent_id = [v for k, v in members.items() if k == "intressent_id"]
-        membersDict = {
-            "tilltalsnamn": tilltalsnamn[0],
-            "valkrets": valkrets[0],
-            "bild_url_192": bild_url_192[0],
-            "intressent_id": intressent_id[0]
-            }
-        members_list.append(membersDict)
-    return members_list
-
+    domain = 'http://data.riksdagen.se'
+    speeches = 'anforandelista'
+    format_type = 'json'
+    response = requests.get('{}/{}/?anftyp={}&sz={}&utformat={}'.format(domain, speeches, anftyp, size, format_type))
+    if response.status_code == 200:
+        data = response.json()
+        speeches = data["anforandelista"]["anforande"]
+        filtered_speeches = filter_speeches_dict(speeches)
+        for speech in filtered_speeches:
+            member_data = get_member_data(speech["intressent_id"])        
+            speech.update(member_data)
+        return filtered_speeches
+    else:
+        return []        
+        
 
 def create_app():
-    """
-    Create app
-    """
     app = Flask("Parliament Challenge")
 
-    @app.route('/ten-latest-speeches', methods=['GET'])
-    def get_ten_latest_speeches():
+    @app.route('/latest-speeches', methods=['GET'])
+    def get_latest_speeches():
         """
         GET request:
-            curl -X GET "localhost:8080/ten-latest-speeches"
-
-        Merger function: 
-            Loop through the create_speeches_dict() which contains 
-            the ten latest speeches with the relevant items.
-            Loop through the create_members_dict() which that contians
-            the relevant items of the members.
-            Merge relevant speeches data to members data if reference key 
-            "intressent_id" from speeches matches members.
+            curl -H "Content-Type: application/json" -X GET -d "{\"anftyp\":\"Nej\", \"size\":2}" "localhost:8080/latest-speeches"
         """
-    
-        speeches = create_speeches_dict()
-        members = create_members_dict()        
-        ten_latest_speeches = []
-        for s in speeches:
-            for m in members:
-                if s["intressent_id"] == m["intressent_id"]:
-                    s.update(m)
-            ten_latest_speeches.append(s)
-        print(ten_latest_speeches)
-        return json.dumps(ten_latest_speeches)
-
+        """
+        Clients can input the number of speeches required by them.
+        Result will be a merged data of speeches with members. 
+        """
+        anftyp = flask.request.json["anftyp"]
+        size = flask.request.json["size"]
+        speeches = get_speeches_data(anftyp, size)
+        print(speeches)
+        return json.dumps(speeches)
     return app
 
 
