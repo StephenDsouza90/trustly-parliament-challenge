@@ -6,7 +6,9 @@ from flask import Flask, request, json
 
 def filter_speeches_dict(speeches):
     """
-    Filter speeches data for relevant items.
+    Filtering speeches data for relevant keys.
+    Relevant keys are anforande_id, dok_datum,
+    parti, avsnittsrubrik, links and intressent_id.
     """
 
     speeches_list = []
