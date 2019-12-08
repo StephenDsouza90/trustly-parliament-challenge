@@ -65,11 +65,11 @@ def get_member_data(intressent_id):
 
 def get_speeches_data(anftyp, size):
     """
-    Get speeches data and filter for relevant items.
-    Loop through filtered speeches to get "intressent id" 
-    and pass it as an argurment to the get_member_data 
-    to get member data.
-    Update the member data with speech data.
+    Get speeches data from speech's api
+    and filter for relevant keys.
+    For each speech we query the member api 
+    to get the member data and 
+    then merge it with the speech data.
     """
 
     domain = 'http://data.riksdagen.se'
@@ -91,18 +91,19 @@ def get_speeches_data(anftyp, size):
 def create_app():
     app = Flask("Parliament Challenge")
 
-    @app.route('/latest-speeches', methods=['GET'])
+    @app.route('/latest-speeches/', methods=['GET'])
     def get_latest_speeches():
         """
         GET request:
-            curl -H "Content-Type: application/json" -X GET -d "{\"anftyp\":\"Nej\", \"size\":10}" "localhost:8080/latest-speeches"
+            curl -X GET "localhost:8080/latest-speeches/?anftyp=Nej&sz=2"
         """
         """
         Clients can input the number of speeches required by them.
         Result will be a merged data of speeches with members. 
         """
-        anftyp = flask.request.json["anftyp"]
-        size = flask.request.json["size"]
+        # args is a dict of parameters in the query string
+        anftyp = flask.request.args["anftyp"]
+        size = flask.request.args["sz"]
         speeches = get_speeches_data(anftyp, size)
         print(speeches)
         return json.dumps(speeches)
