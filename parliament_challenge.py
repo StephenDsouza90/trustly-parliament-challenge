@@ -30,7 +30,9 @@ def filter_speeches_dict(speeches):
 
 def filter_member_dict(member):
     """
-    Filter member data for relevant items.
+    Filtering member data for relevant keys.
+    Relevant keys are tilltalsnamn, valkrets,
+    bild_url_192 and intressent_id.
     """
 
     membersDict = {
