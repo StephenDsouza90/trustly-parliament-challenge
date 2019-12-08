@@ -46,7 +46,8 @@ def filter_member_dict(member):
 
 def get_member_data(intressent_id):
     """
-    Get memeber data filter for relevant items.
+    Get a member data from the member's api
+    and filter for relevant keys.
     """
 
     domain = 'http://data.riksdagen.se'
@@ -58,6 +59,8 @@ def get_member_data(intressent_id):
         member = data["personlista"]["person"]
         filtered_member = filter_member_dict(member)
         return filtered_member
+    else:
+        return []
 
 
 def get_speeches_data(anftyp, size):
