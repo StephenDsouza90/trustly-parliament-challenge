@@ -38,7 +38,7 @@ Link to the member's api: http://data.riksdagen.se/personlista/?iid=&utformat=js
 
 ### Merge
 
-In order to merge a speech to a member, the relevant keys and values are filtered from the the speech api and the reference key **intressent_id** from a speech is passed as an arguement and parameter to get the relevant (filtered) member data which is then updated with that relevant speech data and stored in a list of dict.
+In order to merge a speech to a member, the function will filter the respective apis for the relevant keys and values and link a speech to a member through the reference key **intressent_id**. The function will then update the speech data with member data by combining both data sets together and present a merged data.
 
 ## Server
 
