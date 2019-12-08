@@ -88,7 +88,7 @@ def create_app():
     def get_latest_speeches():
         """
         GET request:
-            curl -H "Content-Type: application/json" -X GET -d "{\"anftyp\":\"Nej\", \"size\":2}" "localhost:8080/latest-speeches"
+            curl -H "Content-Type: application/json" -X GET -d "{\"anftyp\":\"Nej\", \"size\":10}" "localhost:8080/latest-speeches"
         """
         """
         Clients can input the number of speeches required by them.
