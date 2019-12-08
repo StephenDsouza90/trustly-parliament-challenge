@@ -46,7 +46,7 @@ The `create app()` is responsible for creating the server and the `main()` is us
 
 ## How to run locally
 
-This app uses the curl request **curl -H "Content-Type: application/json" -X GET -d "{\"anftyp\":\"Nej\", \"size\":10}" "localhost:8080/latest-speeches"** which has been mapped to the `get_ten_latest_speeches()` in the `create_app()`.
+This app uses the curl request **curl -H "Content-Type: application/json" -X GET -d "{\"anftyp\":\"Nej\", \"size\":10}" "localhost:8080/latest-speeches"** which has been mapped to the `get_latest_speeches()` in the `create_app()`.
 
 ```
 Serving on http://StephenDsouza:8080
