@@ -32,7 +32,7 @@ Link to the speech's api: http://data.riksdagen.se/anforandelista/?anftyp=Nej&sz
 
 ### Member's API
 
-The member's api represents the details of the members of the Swedish parliament. In order get the relevant member data and link the speech to a member, a reference key **intressent_id** (which is common in both apis) is used as a filter option. The relevant keys and values that this api has are: **tilltalsnamn, valkrets, bild_url_192**.
+The member's api represents the details of the members of the Swedish parliament. In order get the relevant member data and link the speech to a member, a reference key **intressent_id** (which is common in both apis) is used as a filter option. The relevant keys and values that this api has are: **tilltalsnamn, valkrets, uppgift and bild_url_192**.
 
 Link to the member's api: http://data.riksdagen.se/personlista/?iid=&utformat=json
 
@@ -64,6 +64,7 @@ Serving on http://StephenDsouza:8080
     'intressent_id': '0339894357417', 
     'tilltalsnamn': 'Jennie', 
     'valkrets': 'Hallands län', 
+    'uppgift': 'email not available', 
     'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/4c6f215d-de3a-452d-83b5-f472b8668b7e_192.jpg'
   }, 
   {
@@ -78,8 +79,8 @@ Serving on http://StephenDsouza:8080
     'intressent_id': '028954589415', 
     'tilltalsnamn': 'Ann-Sofie', 
     'valkrets': 'Västra Götalands läns norra', 
+    'uppgift': ['ann-sofie.alm[på]riksdagen.se'], 
     'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/f91f6a86-591c-449c-b3dd-1fdaa86338cd_192.jpg'
-  }, 
-  {...}
+  }
 ]
 ```

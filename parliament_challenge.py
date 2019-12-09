@@ -32,12 +32,17 @@ def filter_member_dict(member):
     """
     Filtering member data for relevant keys.
     Relevant keys are tilltalsnamn, valkrets,
-    bild_url_192 and intressent_id.
+    bild_url_192, uppgift and intressent_id.
     """
+    if member["personuppgift"]["uppgift"][0]["typ"] == "eadress":
+        email = member["personuppgift"]["uppgift"][0]["uppgift"]
+    elif member["personuppgift"]["uppgift"][0]["typ"] == "biografi":
+        email = 'email not available'
 
     membersDict = {
         "tilltalsnamn": member.get("tilltalsnamn"),
         "valkrets": member.get("valkrets"),
+        "uppgift": email,
         "bild_url_192": member.get("bild_url_192"),
         "intressent_id": member.get("intressent_id")
     }
@@ -56,11 +61,15 @@ def get_member_data(intressent_id):
     response = requests.get('{}/{}/?iid={}&utformat={}'.format(domain, members, intressent_id, format_type))
     if response.status_code == 200:
         data = response.json()
+        # if data["personlista"]["@hits"] == 1:
         member = data["personlista"]["person"]
         filtered_member = filter_member_dict(member)
         return filtered_member
-    else:
-        return []
+        # elif data["personlista"]["@hits"] == 0:
+            # nullMemberDict = {"member_data": "not found"}
+            # return nullDict
+    # else:
+    #     return (not found)
 
 
 def get_speeches_data(anftyp, size):
@@ -85,7 +94,8 @@ def get_speeches_data(anftyp, size):
             speech.update(member_data)
         return filtered_speeches
     else:
-        return []        
+        return []
+        # return (not found)        
         
 
 def create_app():
@@ -101,7 +111,6 @@ def create_app():
         Clients can input the number of speeches required by them.
         Result will be a merged data of speeches with members. 
         """
-        # args is a dict of parameters in the query string
         anftyp = flask.request.args["anftyp"]
         size = flask.request.args["sz"]
         speeches = get_speeches_data(anftyp, size)
