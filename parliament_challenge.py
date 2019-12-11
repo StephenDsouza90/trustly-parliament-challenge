@@ -15,21 +15,35 @@ def filter_speeches_dict(speeches):
     parti, avsnittsrubrik, links and intressent_id.
     """
 
-    speeches_list = []
-    for s in speeches:
+    if speeches:
         speechesDict = {
-            "anforande_id": s.get("anforande_id"),
-            "dok_datum": s.get("dok_datum"),
-            "parti": s.get("parti"), 
-            "avsnittsrubrik": s.get("avsnittsrubrik"),
+            "anforande_id": speeches.get("anforande_id"),
+            "dok_datum": speeches.get("dok_datum"),
+            "parti": speeches.get("parti"), 
+            "avsnittsrubrik": speeches.get("avsnittsrubrik"),
             "links": [{ 
                 "rel": "speech",
-                "href": s.get("protokoll_url_www")
+                "href": speeches.get("protokoll_url_www")
                     }],
-            "intressent_id": s.get("intressent_id")
+            "intressent_id": speeches.get("intressent_id")
             }
-        speeches_list.append(speechesDict)
-    return speeches_list
+        return speechesDict
+    else:
+        speeches_list = []
+        for s in speeches:
+            speechesDict = {
+                    "anforande_id": s.get("anforande_id"),
+                    "dok_datum": s.get("dok_datum"),
+                    "parti": s.get("parti"), 
+                    "avsnittsrubrik": s.get("avsnittsrubrik"),
+                    "links": [{ 
+                        "rel": "speech",
+                        "href": s.get("protokoll_url_www")
+                            }],
+                    "intressent_id": s.get("intressent_id")
+                    }
+            speeches_list.append(speechesDict)
+        return speeches_list
 
 
 def filter_member_dict(member):
@@ -46,7 +60,6 @@ def filter_member_dict(member):
             if e["kod"] == "Officiell e-postadress":
                 uppgift = e["uppgift"]
                 email = uppgift[0]
-
     membersDict = {
         "tilltalsnamn": member.get("tilltalsnamn"),
         "valkrets": member.get("valkrets"),
@@ -95,12 +108,19 @@ def get_speeches_data(anftyp, size):
     response = requests.get('{}/{}/?anftyp={}&sz={}&utformat={}'.format(domain, speeches, anftyp, size, format_type))
     if response.status_code == 200:
         data = response.json()
-        speeches = data["anforandelista"]["anforande"]
-        filtered_speeches = filter_speeches_dict(speeches)
-        for speech in filtered_speeches:
-            member_data, code = get_member_data(speech["intressent_id"])        
-            speech.update(member_data)
-        return filtered_speeches, code
+        if data["anforandelista"]["@antal"] > "1":
+            speeches = data["anforandelista"]["anforande"]
+            filtered_speeches = filter_speeches_dict(speeches)
+            for speech in filtered_speeches:
+                member_data, code = get_member_data(speech["intressent_id"])        
+                speech.update(member_data)
+            return filtered_speeches, code
+        elif data["anforandelista"]["@antal"] == "1":
+            speeches = data["anforandelista"]["anforande"]
+            filtered_speeches = filter_speeches_dict(speeches)
+            member_data, code = get_member_data(filtered_speeches["intressent_id"])        
+            filtered_speeches.update(member_data)
+            return filtered_speeches, code
     else:
         return [], response.status_code
         
