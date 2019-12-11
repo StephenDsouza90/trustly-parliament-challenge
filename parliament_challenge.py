@@ -4,8 +4,28 @@ import flask
 from flask import Flask, request, json
 
 
-not_found = {"message": "Not Found"}
-failed = {"message": "Failed"}
+def filter_speeches_list(speeches):
+    """
+    Filtering speeches data for relevant keys.
+    Relevant keys are anforande_id, dok_datum,
+    parti, avsnittsrubrik, links and intressent_id.
+    """
+
+    speeches_list = []
+    for s in speeches:
+        speechesDict = {
+                "anforande_id": s.get("anforande_id"),
+                "dok_datum": s.get("dok_datum"),
+                "parti": s.get("parti"), 
+                "avsnittsrubrik": s.get("avsnittsrubrik"),
+                "links": [{ 
+                    "rel": "speech",
+                    "href": s.get("protokoll_url_www")
+                        }],
+                "intressent_id": s.get("intressent_id")
+                }
+        speeches_list.append(speechesDict)
+    return speeches_list
 
 
 def filter_speeches_dict(speeches):
@@ -15,8 +35,7 @@ def filter_speeches_dict(speeches):
     parti, avsnittsrubrik, links and intressent_id.
     """
 
-    if speeches:
-        speechesDict = {
+    speechesDict = {
             "anforande_id": speeches.get("anforande_id"),
             "dok_datum": speeches.get("dok_datum"),
             "parti": speeches.get("parti"), 
@@ -27,23 +46,7 @@ def filter_speeches_dict(speeches):
                     }],
             "intressent_id": speeches.get("intressent_id")
             }
-        return speechesDict
-    else:
-        speeches_list = []
-        for s in speeches:
-            speechesDict = {
-                    "anforande_id": s.get("anforande_id"),
-                    "dok_datum": s.get("dok_datum"),
-                    "parti": s.get("parti"), 
-                    "avsnittsrubrik": s.get("avsnittsrubrik"),
-                    "links": [{ 
-                        "rel": "speech",
-                        "href": s.get("protokoll_url_www")
-                            }],
-                    "intressent_id": s.get("intressent_id")
-                    }
-            speeches_list.append(speechesDict)
-        return speeches_list
+    return speechesDict
 
 
 def filter_member_dict(member):
@@ -110,7 +113,7 @@ def get_speeches_data(anftyp, size):
         data = response.json()
         if data["anforandelista"]["@antal"] > "1":
             speeches = data["anforandelista"]["anforande"]
-            filtered_speeches = filter_speeches_dict(speeches)
+            filtered_speeches = filter_speeches_list(speeches)
             for speech in filtered_speeches:
                 member_data, code = get_member_data(speech["intressent_id"])        
                 speech.update(member_data)
@@ -118,7 +121,7 @@ def get_speeches_data(anftyp, size):
         elif data["anforandelista"]["@antal"] == "1":
             speeches = data["anforandelista"]["anforande"]
             filtered_speeches = filter_speeches_dict(speeches)
-            member_data, code = get_member_data(filtered_speeches["intressent_id"])        
+            member_data, code = get_member_data(filtered_speeches["intressent_id"])
             filtered_speeches.update(member_data)
             return filtered_speeches, code
     else:
@@ -132,7 +135,7 @@ def create_app():
     def get_latest_speeches():
         """
         GET request:
-            curl -X GET "localhost:8080/latest-speeches/?anftyp=Nej&sz=2"
+            curl -X GET "localhost:8080/latest-speeches/?anftyp=Nej&sz=10"
         """
         """
         Clients can input the number of speeches required by them.
