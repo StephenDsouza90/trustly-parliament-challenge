@@ -4,7 +4,7 @@ import flask
 from flask import Flask, request, json
 
 
-def filter_speeches_list(speeches):
+def filter_speeches_dict(speeches):
     """
     Filtering speeches data for relevant keys.
     Relevant keys are anforande_id, dok_datum,
@@ -26,27 +26,6 @@ def filter_speeches_list(speeches):
                 }
         speeches_list.append(speechesDict)
     return speeches_list
-
-
-def filter_speeches_dict(speeches):
-    """
-    Filtering speeches data for relevant keys.
-    Relevant keys are anforande_id, dok_datum,
-    parti, avsnittsrubrik, links and intressent_id.
-    """
-
-    speechesDict = {
-            "anforande_id": speeches.get("anforande_id"),
-            "dok_datum": speeches.get("dok_datum"),
-            "parti": speeches.get("parti"), 
-            "avsnittsrubrik": speeches.get("avsnittsrubrik"),
-            "links": [{ 
-                "rel": "speech",
-                "href": speeches.get("protokoll_url_www")
-                    }],
-            "intressent_id": speeches.get("intressent_id")
-            }
-    return speechesDict
 
 
 def filter_member_dict(member):
@@ -113,16 +92,19 @@ def get_speeches_data(anftyp, size):
         data = response.json()
         if data["anforandelista"]["@antal"] > "1":
             speeches = data["anforandelista"]["anforande"]
-            filtered_speeches = filter_speeches_list(speeches)
+            filtered_speeches = filter_speeches_dict(speeches)
             for speech in filtered_speeches:
                 member_data, code = get_member_data(speech["intressent_id"])        
                 speech.update(member_data)
             return filtered_speeches, code
         elif data["anforandelista"]["@antal"] == "1":
+            lst = []
             speeches = data["anforandelista"]["anforande"]
-            filtered_speeches = filter_speeches_dict(speeches)
-            member_data, code = get_member_data(filtered_speeches["intressent_id"])
-            filtered_speeches.update(member_data)
+            lst.append(speeches)
+            filtered_speeches = filter_speeches_dict(lst)
+            for speech in filtered_speeches:
+                member_data, code = get_member_data(speech["intressent_id"])
+                speech.update(member_data)
             return filtered_speeches, code
     else:
         return [], response.status_code
