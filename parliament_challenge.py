@@ -4,6 +4,10 @@ import flask
 from flask import Flask, request, json
 
 
+not_found = {"message": "Not Found"}
+failed = {"message": "Failed"}
+
+
 def filter_speeches_dict(speeches):
     """
     Filtering speeches data for relevant keys.
@@ -34,10 +38,14 @@ def filter_member_dict(member):
     Relevant keys are tilltalsnamn, valkrets,
     bild_url_192, uppgift and intressent_id.
     """
-    if member["personuppgift"]["uppgift"][0]["typ"] == "eadress":
-        email = member["personuppgift"]["uppgift"][0]["uppgift"]
-    elif member["personuppgift"]["uppgift"][0]["typ"] == "biografi":
-        email = 'email not available'
+
+    if member["personuppgift"] is None:
+        email = "null"
+    else:
+        for e in member["personuppgift"]["uppgift"]:
+            if e["kod"] == "Officiell e-postadress":
+                uppgift = e["uppgift"]
+                email = uppgift[0]
 
     membersDict = {
         "tilltalsnamn": member.get("tilltalsnamn"),
@@ -61,15 +69,15 @@ def get_member_data(intressent_id):
     response = requests.get('{}/{}/?iid={}&utformat={}'.format(domain, members, intressent_id, format_type))
     if response.status_code == 200:
         data = response.json()
-        # if data["personlista"]["@hits"] == 1:
-        member = data["personlista"]["person"]
-        filtered_member = filter_member_dict(member)
-        return filtered_member
-        # elif data["personlista"]["@hits"] == 0:
-            # nullMemberDict = {"member_data": "not found"}
-            # return nullDict
-    # else:
-    #     return (not found)
+        if data["personlista"]["@hits"] == "1":
+            member = data["personlista"]["person"]
+            filtered_member = filter_member_dict(member)
+            return filtered_member, response.status_code
+        elif data["personlista"]["@hits"] == "0":
+            nullMemberDict = {}
+            return nullMemberDict, response.status_code
+    else:
+        return {}, response.status_code
 
 
 def get_speeches_data(anftyp, size):
@@ -90,12 +98,11 @@ def get_speeches_data(anftyp, size):
         speeches = data["anforandelista"]["anforande"]
         filtered_speeches = filter_speeches_dict(speeches)
         for speech in filtered_speeches:
-            member_data = get_member_data(speech["intressent_id"])        
+            member_data, code = get_member_data(speech["intressent_id"])        
             speech.update(member_data)
-        return filtered_speeches
+        return filtered_speeches, code
     else:
-        return []
-        # return (not found)        
+        return [], response.status_code
         
 
 def create_app():
@@ -113,9 +120,9 @@ def create_app():
         """
         anftyp = flask.request.args["anftyp"]
         size = flask.request.args["sz"]
-        speeches = get_speeches_data(anftyp, size)
+        speeches, code = get_speeches_data(anftyp, size)
         print(speeches)
-        return json.dumps(speeches)
+        return json.dumps(speeches), code
     return app
 
 
