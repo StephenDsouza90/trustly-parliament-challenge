@@ -36,12 +36,13 @@ def filter_member_dict(member):
     """
 
     if member["personuppgift"] is None:
-        email = "null"
+        email = None
     else:
         for e in member["personuppgift"]["uppgift"]:
             if e["kod"] == "Officiell e-postadress":
                 uppgift = e["uppgift"]
                 email = uppgift[0]
+
     membersDict = {
         "tilltalsnamn": member.get("tilltalsnamn"),
         "valkrets": member.get("valkrets"),
@@ -64,10 +65,14 @@ def get_member_data(intressent_id):
     response = requests.get('{}/{}/?iid={}&utformat={}'.format(domain, members, intressent_id, format_type))
     if response.status_code == 200:
         data = response.json()
+        # One member data being returned at a time.
         if data["personlista"]["@hits"] == "1":
             member = data["personlista"]["person"]
             filtered_member = filter_member_dict(member)
             return filtered_member, response.status_code
+        # In case a member detail is non-existent,
+        # returning an empty dict to indicate that 
+        # the detail does not exist in the member data.
         elif data["personlista"]["@hits"] == "0":
             nullMemberDict = {}
             return nullMemberDict, response.status_code
@@ -90,6 +95,7 @@ def get_speeches_data(anftyp, size):
     response = requests.get('{}/{}/?anftyp={}&sz={}&utformat={}'.format(domain, speeches, anftyp, size, format_type))
     if response.status_code == 200:
         data = response.json()
+        # When a client requests for more than one speech.
         if data["anforandelista"]["@antal"] > "1":
             speeches = data["anforandelista"]["anforande"]
             filtered_speeches = filter_speeches_dict(speeches)
@@ -97,11 +103,14 @@ def get_speeches_data(anftyp, size):
                 member_data, code = get_member_data(speech["intressent_id"])        
                 speech.update(member_data)
             return filtered_speeches, code
+        # When a client requests only for one speech.
+        # As a dict is returned, that speech is stored 
+        # in a list and then filtered.
         elif data["anforandelista"]["@antal"] == "1":
-            lst = []
-            speeches = data["anforandelista"]["anforande"]
-            lst.append(speeches)
-            filtered_speeches = filter_speeches_dict(lst)
+            speeches = [
+                data["anforandelista"]["anforande"]
+            ]
+            filtered_speeches = filter_speeches_dict(speeches)
             for speech in filtered_speeches:
                 member_data, code = get_member_data(speech["intressent_id"])
                 speech.update(member_data)

@@ -32,7 +32,7 @@ Link to the speech's api: http://data.riksdagen.se/anforandelista/?anftyp=Nej&sz
 
 ### Member's API
 
-The member's api represents the details of the members of the Swedish parliament. In order get the relevant member data and link the speech to a member, a reference key **intressent_id** (which is common in both apis) is used as a filter option. The relevant keys and values that this api has are: **tilltalsnamn, valkrets, uppgift and bild_url_192**.
+The member's api represents the details of the members of the Swedish parliament. In order get the relevant member data and link a speech to a member, a reference key **intressent_id** (which is common in both apis) is used as a filter option. The relevant keys and values that this api has are: **tilltalsnamn, valkrets, uppgift and bild_url_192**.
 
 Link to the member's api: http://data.riksdagen.se/personlista/?iid=&utformat=json
 
@@ -46,41 +46,42 @@ The `create app()` is responsible for creating the server and the `main()` is us
 
 ## How to run locally
 
-This app uses the curl request **curl -H "Content-Type: application/json" -X GET -d "{\"anftyp\":\"Nej\", \"size\":10}" "localhost:8080/latest-speeches"** which has been mapped to the `get_latest_speeches()` in the `create_app()`.
+This app uses the curl request **curl -X GET "localhost:8080/latest-speeches/?anftyp=Nej&sz=10"** which has been mapped to the `get_latest_speeches()` in the `create_app()`.
 
 ```
 Serving on http://StephenDsouza:8080
 
 [
   {
-    'anforande_id': '6dc3f668-4e18-ea11-912c-901b0e9b71a8', 
-    'dok_datum': '2019-12-06', 
-    'parti': 'S', 
-    'avsnittsrubrik': 'Svar på interpellation 2019/20:148 om måluppfyllnad i livsmedelsstrategin', 
+    'anforande_id': 'e1a9afb5-6b1c-ea11-912c-901b0e9b71a8', 
+    'dok_datum': '2019-12-11', 
+    'parti': 'L', 
+    'avsnittsrubrik': 'Energi', 
     'links': [{
       'rel': 'speech', 
-      'href': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70946/#anf89'
+      'href': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70949/#anf226'
       }], 
-    'intressent_id': '0339894357417', 
-    'tilltalsnamn': 'Jennie', 
-    'valkrets': 'Hallands län', 
-    'uppgift': 'email not available', 
-    'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/4c6f215d-de3a-452d-83b5-f472b8668b7e_192.jpg'
+    'intressent_id': '0322827326923', 
+    'tilltalsnamn': 'Arman', 
+    'valkrets': 'Värmlands län', 
+    'uppgift': 'arman.teimouri[på]riksdagen.se', 
+    'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/92355c36-d95d-42ed-9ad9-463bf9558767_192.jpg'
   }, 
   {
-    'anforande_id': '6cc3f668-4e18-ea11-912c-901b0e9b71a8', 
-    'dok_datum': '2019-12-06', 
-    'parti': 'M', 
-    'avsnittsrubrik': 'Svar på interpellation 2019/20:148 om måluppfyllnad i livsmedelsstrategin', 
+    'anforande_id': 'd8a9afb5-6b1c-ea11-912c-901b0e9b71a8', 
+    'dok_datum': '2019-12-11', 
+    'parti': 'C', 
+    'avsnittsrubrik': 'Energi', 
     'links': [{
       'rel': 'speech', 
-      'href': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70946/#anf88'
+      'href': 'http://www.riksdagen.se/sv/Dokument-Lagar/Kammaren/Protokoll/Riksdagens-snabbprotokoll_H70949/#anf217'
       }], 
-    'intressent_id': '028954589415', 
-    'tilltalsnamn': 'Ann-Sofie', 
-    'valkrets': 'Västra Götalands läns norra', 
-    'uppgift': ['ann-sofie.alm[på]riksdagen.se'], 
-    'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/f91f6a86-591c-449c-b3dd-1fdaa86338cd_192.jpg'
-  }
+    'intressent_id': '0132818093422', 
+    'tilltalsnamn': 'Rickard', 
+    'valkrets': 'Göteborgs kommun', 
+    'uppgift': 'rickard.nordin[på]riksdagen.se', 
+    'bild_url_192': 'http://data.riksdagen.se/filarkiv/bilder/ledamot/a57d39bb-9f60-4def-ab90-97791ec56447_192.jpg'
+  },
+  {...}
 ]
 ```
