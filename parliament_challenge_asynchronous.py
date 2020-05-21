@@ -65,7 +65,7 @@ async def get_speeches(anftyp, size):
             filtered_speech.update(member_data)
             return filtered_speech
     else:
-        return [], response.status_code
+        return []
 
 
 def filter_speeches_dict(speeches):
@@ -123,9 +123,9 @@ async def get_member_data(intressent_id):
         # returning an empty dict to indicate that 
         # the detail does not exist in the member data.
         elif data["personlista"]["@hits"] == "0":
-            return {}, response.status_code
+            return {}
     else:
-        return {}, response.status_code
+        return {}
 
 
 def filter_member_dict(member):
