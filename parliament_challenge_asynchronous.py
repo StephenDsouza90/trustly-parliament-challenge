@@ -1,32 +1,32 @@
-import requests
-import waitress
-import flask
+import asyncio
+import requests_async as requests
 
-from flask import Flask, request, json
+from quart import Quart, request, json
+from hypercorn.config import Config
+from hypercorn.asyncio import serve
 
 
 def create_app():
-    app = Flask("Parliament Challenge")
+    app = Quart("Parliament Challenge")
 
     @app.route('/latest-speeches/', methods=['GET'])
-    def get_latest_speeches():
+    async def get_latest_speeches():
         """
         GET request:
-            curl -X GET "localhost:8080/latest-speeches/?anftyp=Nej&sz=10"
+            curl -X GET "http://127.0.0.1:8080/latest-speeches/?anftyp=Nej&sz=10"
         """
         """
         Clients can input the number of speeches required by them.
         Result will be a merged data of speeches with members. 
         """
-
-        anftyp = flask.request.args["anftyp"]
-        size = flask.request.args["sz"]
-        speeches = get_speeches_data(anftyp, size)
+        anftyp = request.args["anftyp"]
+        size = request.args["sz"]
+        speeches = await get_speeches(anftyp, size)
         return json.dumps(speeches)
     return app
 
 
-def get_speeches_data(anftyp, size):
+async def get_speeches(anftyp, size):
     """
     Get speeches data from speech's api
     and filter for relevant keys.
@@ -38,28 +38,32 @@ def get_speeches_data(anftyp, size):
     domain = 'http://data.riksdagen.se'
     speeches = 'anforandelista'
     format_type = 'json'
-    response = requests.get('{}/{}/?anftyp={}&sz={}&utformat={}'.format(domain, speeches, anftyp, size, format_type))
+    response = await requests.get('{}/{}/?anftyp={}&sz={}&utformat={}'.format(domain, speeches, anftyp, size, format_type))
     if response.status_code == 200:
         data = response.json()
         # When a server responds with more than one speech.
         if data["anforandelista"]["@antal"] > "1":
             speeches = data["anforandelista"]["anforande"]
             filtered_speeches = filter_speeches_dict(speeches)
+            tasks = []
+            loop = asyncio.get_event_loop()
             for speech in filtered_speeches:
-                member_data = get_member_data(speech["intressent_id"])        
-                speech.update(member_data)
-            return filtered_speeches
+                task = loop.create_task(merge_speech_with_member_data(speech))
+                tasks.append(task)
+            await asyncio.wait(tasks)
+            merged_speeches = [t.result() for t in tasks]
+            return merged_speeches
         # When a server responds only with one speech.
         # A dict is returned and to handle this, the dict is stored 
         # in a list because the filter_speeches_dict accepts a list.
         elif data["anforandelista"]["@antal"] == "1":
-            speech = [
+            speeches = [
                 data["anforandelista"]["anforande"]
             ]
-            filtered_speech = filter_speeches_dict(speech)[0]
-            member_data = get_member_data(filtered_speech["intressent_id"])
+            filtered_speech = filter_speeches_dict(speeches)[0]
+            member_data = await get_member_data(filtered_speech["intressent_id"])
             filtered_speech.update(member_data)
-            return filtered_speeches
+            return filtered_speech
     else:
         return []
 
@@ -88,7 +92,17 @@ def filter_speeches_dict(speeches):
     return speeches_list
 
 
-def get_member_data(intressent_id):
+async def merge_speech_with_member_data(speech):
+    """
+    Merge the speech data with member data.    
+    """
+
+    member_data = await get_member_data(speech["intressent_id"])
+    speech.update(member_data)
+    return speech
+
+
+async def get_member_data(intressent_id):
     """
     Get a member data from the member's api
     and filter for relevant keys.
@@ -97,7 +111,7 @@ def get_member_data(intressent_id):
     domain = 'http://data.riksdagen.se'
     members = 'personlista'
     format_type = 'json'
-    response = requests.get('{}/{}/?iid={}&utformat={}'.format(domain, members, intressent_id, format_type))
+    response = await requests.get('{}/{}/?iid={}&utformat={}'.format(domain, members, intressent_id, format_type))
     if response.status_code == 200:
         data = response.json()
         # One member data being returned at a time.
@@ -140,8 +154,11 @@ def filter_member_dict(member):
 
 
 def main():
+    loop = asyncio.get_event_loop()
     app = create_app()
-    waitress.serve(app, host='0.0.0.0', port=8080)
+    config = Config()
+    config.bind = ["localhost:8080"]
+    loop.run_until_complete(serve(app, config))
 
 
 if __name__ == "__main__":
