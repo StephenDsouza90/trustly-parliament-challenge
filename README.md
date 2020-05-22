@@ -59,19 +59,23 @@ In order to merge a speech to a member, the speech data is filtered for the rele
 
 The `parliament_challenge_asynchronous.py` implements the Trustly Parliament Challenge asynchronously allowing the app to run multiple requests concurrently. In concurrent programming, multiple tasks also have the ability to run in an overlapping manner thus making the app to run faster and efficeintly.
 
-The `asyncio` is a built-in Python package that runs on a single-thread (called the event loop) allowing for cooperative multitasking among the coroutine functions. A coroutine fucntion can “pause” while waiting on their ultimate result and let other functions run in the meantime.
+The `asyncio` is a built-in Python package that runs on a single-thread (called the event loop) allowing for cooperative multitasking among the coroutine functions. A coroutine function can “pause” while waiting on their ultimate result and let other functions run in the meantime.
 
-To make this app run concurrently, the keywords `async/await` are used to define the coroutine functions. Furthermore, each speech data is updated with a memeber data in a seperate task, eliminating the dependencey between each mergers. 
+To make this app run concurrently, the keywords `async/await` are used to define the coroutine functions. Furthermore, each speech data is updated with a memeber data in a seperate task, eliminating the dependencey between each merger. 
 
-## Server - Synchronous
+## Server
+
+**Synchronous**
 
 The `create app()` uses the `Flask` web framework for creating the server and the `main()` uses `waitress` for running the server.
 
-## Server - Asynchronous
+**Asynchronous**
 
 The `create app()` uses the `Quart` web framework for creating the server and the `main()` uses `hypercorn` for running the server.
 
-## How to run locally - Synchronous
+## How to run locally
+
+**Synchronous**
 
 This app uses the curl request **curl -X GET "localhost:8080/latest-speeches/?anftyp=Nej&sz=10"** which has been mapped to the `get_latest_speeches()` in the `create_app()`.
 
@@ -81,7 +85,7 @@ Serving on http://StephenDsouza:8080
 
 ```
 
-## How to run locally - Asynchronous
+**Asynchronous**
 
 This app uses the curl request **curl -X GET "127.0.0.1:8080/latest-speeches/?anftyp=Nej&sz=10"** which has been mapped to the `get_latest_speeches()` in the `create_app()`.
 
