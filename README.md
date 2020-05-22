@@ -30,11 +30,11 @@ The speech's api represents the details of the speeches held at the Swedish Parl
 
 The relevant keys and values that this api has are: 
 
-**anforande_id**
-**dok_datum**
-**parti**
-**avsnittsrubrik**
-**protokoll_url_www**
+- **anforande_id**
+- **dok_datum**
+- **parti**
+- **avsnittsrubrik**
+- **protokoll_url_www**
 
 Link to the speech's api: http://data.riksdagen.se/anforandelista/?anftyp=Nej&sz=10&utformat=json
 
@@ -44,22 +44,22 @@ The member's api represents the details of the members of the Swedish Parliament
 
 The relevant keys and values that this api has are: 
 
-**tilltalsnamn**
-**valkrets**
-**uppgift**
-**bild_url_192**
+- **tilltalsnamn**
+- **valkrets**
+- **uppgift**
+- **bild_url_192**
 
 Link to the member's api: http://data.riksdagen.se/personlista/?iid=&utformat=json
 
 ### Merge
 
-In order to merge a speech to a member, the speech data will be filtered for the relevant keys and values and will be linked to a member data through the reference key **intressent_id**. The member data will also be filtered for the relevant keys and values. The speech data will get updated with the relevant member data by combining both data sets together and present a merged data.
+In order to merge a speech to a member, the speech data is filtered for the relevant keys and values and is linked to a member data through the reference key **intressent_id**. The member data is also filtered for the relevant keys and values. The speech data is updated with the relevant member data by combining both data sets together and presents a merged data.
 
 ## AsyncIO
 
-The `parliament_challenge_asynchronous.py` implements the Trustly Parliament Challenge asynchronously allowing the app to run multiple request concurrently. In concurrent programming, multiple tasks have the ability to run in an overlapping manner making the app to run faster and efficeintly.
+The `parliament_challenge_asynchronous.py` implements the Trustly Parliament Challenge asynchronously allowing the app to run multiple requests concurrently. In concurrent programming, multiple tasks also have the ability to run in an overlapping manner thus making the app to run faster and efficeintly.
 
-The `asyncio` is a built-in Python package that runs on a single-thread (called the event loop) allowing for cooperative multitasking among the coroutine functions. An asynchronous fucntions can “pause” while waiting on their ultimate result and let other functions run in the meantime.
+The `asyncio` is a built-in Python package that runs on a single-thread (called the event loop) allowing for cooperative multitasking among the coroutine functions. A coroutine fucntion can “pause” while waiting on their ultimate result and let other functions run in the meantime.
 
 To make this app run concurrently, the keywords `async/await` are used to define the coroutine functions. Furthermore, each speech data is updated with a memeber data in a seperate task, eliminating the dependencey between each mergers. 
 
@@ -83,15 +83,13 @@ Serving on http://StephenDsouza:8080
 
 ## How to run locally - Asynchronous
 
-This app uses the curl request **curl -X GET "http://127.0.0.1:8080/latest-speeches/?anftyp=Nej&sz=10"** which has been mapped to the `get_latest_speeches()` in the `create_app()`.
+This app uses the curl request **curl -X GET "127.0.0.1:8080/latest-speeches/?anftyp=Nej&sz=10"** which has been mapped to the `get_latest_speeches()` in the `create_app()`.
 
 ```
 
 Running on 127.0.0.1:8080 over http (CTRL + C to quit)
 
 ```
-
-## Screenshot
 
 ```
 
