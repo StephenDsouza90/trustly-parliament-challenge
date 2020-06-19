@@ -80,6 +80,7 @@ The `create app()` uses the `Quart` web framework for creating the server and th
 This app uses the curl request **curl -X GET "localhost:8080/latest-speeches/?anftyp=Nej&sz=10"** which has been mapped to the `get_latest_speeches()` in the `create_app()`.
 
 ```
+>> python parliament_challenge.py	
 
 Serving on http://StephenDsouza:8080
 
@@ -90,6 +91,7 @@ Serving on http://StephenDsouza:8080
 This app uses the curl request **curl -X GET "127.0.0.1:8080/latest-speeches/?anftyp=Nej&sz=10"** which has been mapped to the `get_latest_speeches()` in the `create_app()`.
 
 ```
+>> python parliament_challenge_asynchronous.py
 
 Running on 127.0.0.1:8080 over http (CTRL + C to quit)
 
